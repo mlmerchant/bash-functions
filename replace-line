@@ -1,0 +1,37 @@
+function replace-line {
+    if [ $# -ne 3 ]; then
+        echo "Usage: replace-line [file] [line number] [replacement text]"
+        return 1
+    fi
+
+    local file=$1
+    local line_num=$2
+    local replacement=$3
+    local temp_file=$(mktemp)
+
+    # Check if file exists
+    if [ ! -f "$file" ]; then
+        echo "File does not exist"
+        return 1
+    fi
+
+    # Check if line number is valid
+    if ! [[ $line_num =~ ^[0-9]+$ ]]; then
+        echo "Line number must be a positive integer"
+        return 1
+    fi
+
+    local current_line=0
+
+    while IFS= read -r line; do
+        ((current_line++))
+        if [ $current_line -eq $line_num ]; then
+            echo "$replacement"
+        else
+            echo "$line"
+        fi
+    done < "$file" > "$temp_file"
+
+    # Move the temporary file to the original file
+    mv "$temp_file" "$file"
+}
