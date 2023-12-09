@@ -1,0 +1,5 @@
+#!/bin/bash
+
+function debug(){
+    if [[ ${debug} == "true"  ]]; then echo "DEBUG: ${1}" ; fi
+}
