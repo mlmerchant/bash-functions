@@ -1,0 +1,31 @@
+#!/bin/bash
+# usage: permutation NumberOfElements IndexOfSpecificPermutation
+# Example: permutation 8 1
+
+    local n=$1
+    local index=$2
+    local elements=($(seq 1 $n))  # Create an array of elements
+
+    # AWK script to calculate the specific permutation
+    awk -v n="$n" -v idx="$index" -v elems="${elements[*]}" '
+    BEGIN {
+        split(elems, arr, " ")
+        idx--  # Adjust index to be zero-based
+
+        for (i = 1; i <= n; i++) {
+            factorials[i] = (i == 1 ? 1 : factorials[i-1] * i)
+        }
+
+        for (i = n; i >= 1; i--) {
+            j = int(idx / factorials[i-1]) + 1
+            idx %= factorials[i-1]
+            printf "%d ", arr[j]
+
+            # Remove the j-th element from arr
+            for (k = j; k < i; k++) {
+                arr[k] = arr[k + 1]
+            }
+        }
+        printf "\n"
+    }
+    '
