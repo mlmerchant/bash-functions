@@ -10,3 +10,6 @@ function literal_grep() {
     done
     return $return_code
 }
+
+# Usage example
+# literal_grep "search_term" < input_file.txt  # Mimics `grep "search_term" input_file.txt`
