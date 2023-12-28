@@ -1,0 +1,18 @@
+function bash_cut() {
+    local delimiter="$1"
+    local field="$2"
+
+    while IFS= read -r line; do
+        # Splitting the line into an array using the specified delimiter
+        IFS="$delimiter" read -ra fields <<< "$line"
+
+        # Output the requested field (1-based indexing in 'cut', 0-based in Bash arrays)
+        ((field--))
+        if [ "${#fields[@]}" -gt "$field" ]; then
+            echo "${fields[$field]}"
+        fi
+    done
+}
+
+# Usage example
+# bash_cut "," 2 < input_file.txt  # Mimics `cut -d, -f2 input_file.txt`
