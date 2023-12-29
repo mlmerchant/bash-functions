@@ -3,43 +3,55 @@
 # Initialize associative arrays
 declare -A resource_tags
 declare -A unique_tags
+declare -A resource_type_data
+
+# Debugging flag
+debug=true
 
 # Read input line by line
 while IFS=$'\t' read -r tag_name resource_id resource_type tag_value; do
     # Skip the header line
     [[ $tag_name == "Tag Name" ]] && continue
 
-    # Concatenate tag name and tag value as a single string (tag_name:value)
+    # Validate input line
+    if [[ -z $tag_name || -z $resource_id || -z $resource_type ]]; then
+        $debug && echo "Invalid line: $tag_name, $resource_id, $resource_type, $tag_value"
+        continue
+    fi
+
+    # Store tag data
     if [[ -n $tag_value ]]; then
         resource_tags[$resource_id]="${resource_tags[$resource_id]} $tag_name:$tag_value"
     fi
 
-    # Store resource type separately
+    # Store resource type
     resource_type_data[$resource_id]=$resource_type
 
-    # Keep track of unique tag names
+    # Track unique tag names
     unique_tags[$tag_name]=1
 done
 
 # Print the header
 printf "Resource ID\tResource Type\t"
-for tag_name in "${(@k)unique_tags[@]}"; do
+for tag_name in "${!unique_tags[@]}"; do
     printf "%s\t" "$tag_name"
 done
 echo ""
 
 # Iterate over each resource ID
-for resource_id in "${(@k)resource_tags[@]}"; do
+for resource_id in "${!resource_tags[@]}"; do
     printf "%s\t%s\t" "$resource_id" "${resource_type_data[$resource_id]}"
-    
+
     # Create an associative array from the tag string
     declare -A tag_array
     for tag in ${(s: :)resource_tags[$resource_id]}; do
-        tag_array[${tag%%:*}]=${tag#*:}
+        key=${tag%%:*}
+        value=${tag#*:}
+        tag_array[$key]=$value
     done
 
-    # Print tag values, or 'N/A' if not present
-    for tag_name in "${(@k)unique_tags[@]}"; do
+    # Print tag values or 'N/A'
+    for tag_name in "${!unique_tags[@]}"; do
         tag_value="${tag_array[$tag_name]:-N/A}"
         printf "%s\t" "$tag_value"
     done
