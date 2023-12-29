@@ -4,10 +4,16 @@
 declare -A resource_data
 declare -A tag_names
 
+# Debugging flag
+debug=true
+
 # Read input line by line
 while read -r tag_name resource_id resource_type tag_value; do
     # Skip the header line
     [[ $tag_name == "Tag" && $resource_id == "Name" ]] && continue
+
+    # Debugging: Print the read values
+    $debug && echo "Read: $tag_name, $resource_id, $resource_type, $tag_value"
 
     # Store the resource type for each resource ID
     resource_data[$resource_id,"Resource_Type"]=$resource_type
@@ -24,6 +30,9 @@ unset "tag_names[Name]"
 
 # Extract unique resource IDs
 unique_resource_ids=("${(@u)${(k)resource_data%%,*}}")
+
+# Debugging: Print the unique resource IDs
+$debug && echo "Unique Resource IDs: ${unique_resource_ids[@]}"
 
 # Print the header
 printf "Resource Id\tResource Type\t"
