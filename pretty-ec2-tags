@@ -1,0 +1,43 @@
+#!/bin/zsh
+
+# Initialize associative arrays
+declare -A resource_data
+declare -A tag_names
+
+# Read input line by line
+while read -r tag_name resource_id resource_type tag_value; do
+    # Skip the header line
+    [[ $tag_name == "Tag" && $resource_id == "Name" ]] && continue
+
+    # Store the resource type for each resource ID
+    resource_data[$resource_id,"Resource_Type"]=$resource_type
+
+    # Store the tag value for each tag name and resource ID
+    resource_data[$resource_id,$tag_name]=$tag_value
+
+    # Keep track of unique tag names
+    tag_names[$tag_name]=1
+done
+
+# Remove "Name" from the tag names list
+unset "tag_names[Name]"
+
+# Extract unique resource IDs
+unique_resource_ids=("${(@u)${(k)resource_data%%,*}}")
+
+# Print the header
+printf "Resource Id\tResource Type\t"
+for tag_name in ${(k)tag_names}; do
+    printf "%s\t" "$tag_name"
+done
+echo ""
+
+# Print the data
+for resource_id in $unique_resource_ids; do
+    printf "%s\t%s\t" "$resource_id" "${resource_data[$resource_id,'Resource_Type']}"
+    for tag_name in ${(k)tag_names}; do
+        tag_value="${resource_data[$resource_id,$tag_name]:-N/A}"
+        printf "%s\t" "$tag_value"
+    done
+    echo ""
+done
