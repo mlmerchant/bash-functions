@@ -1,61 +1,48 @@
 #!/bin/zsh
-#2
 
 # Initialize associative arrays
-declare -A resource_data
-declare -A tag_names
-
-# Debugging flag
-debug=true
+declare -A resource_tags
+declare -A unique_tags
 
 # Read input line by line
-while read -r tag_name resource_id resource_type tag_value; do
+while IFS=$'\t' read -r tag_name resource_id resource_type tag_value; do
     # Skip the header line
-    [[ $tag_name == "Tag" && $resource_id == "Name" ]] && continue
+    [[ $tag_name == "Tag Name" ]] && continue
 
-    # Debugging: Print the read values
-    $debug && echo "Read: $tag_name, $resource_id, $resource_type, $tag_value"
-
-    # Store the resource type for each resource ID (only if not already stored)
-    if [[ -z ${resource_data[$resource_id,"Resource_Type"]} ]]; then
-        resource_data[$resource_id,"Resource_Type"]=$resource_type
+    # Concatenate tag name and tag value as a single string (tag_name:value)
+    if [[ -n $tag_value ]]; then
+        resource_tags[$resource_id]="${resource_tags[$resource_id]} $tag_name:$tag_value"
     fi
 
-    # Store the tag value for each tag name and resource ID
-    resource_data[$resource_id,$tag_name]=$tag_value
+    # Store resource type separately
+    resource_type_data[$resource_id]=$resource_type
 
     # Keep track of unique tag names
-    tag_names[$tag_name]=1
-done
-
-# Remove "Name" from the tag names list
-unset "tag_names[Name]"
-
-# Extract unique resource IDs
-unique_resource_ids=(${(k)resource_data})
-unique_resource_ids=(${unique_resource_ids//,*/})
-
-# Debugging: Print the unique resource IDs and their data
-$debug && for id in $unique_resource_ids; do
-    echo "Resource ID: $id"
-    for key in ${(k)resource_data}; do
-        [[ $key == $id* ]] && echo "$key: ${resource_data[$key]}"
-    done
+    unique_tags[$tag_name]=1
 done
 
 # Print the header
-printf "Resource Id\tResource Type\t"
-for tag_name in ${(k)tag_names}; do
+printf "Resource ID\tResource Type\t"
+for tag_name in "${(@k)unique_tags[@]}"; do
     printf "%s\t" "$tag_name"
 done
 echo ""
 
-# Print the data
-for resource_id in $unique_resource_ids; do
-    printf "%s\t%s\t" "$resource_id" "${resource_data[$resource_id,'Resource_Type']}"
-    for tag_name in ${(k)tag_names}; do
-        tag_value="${resource_data[$resource_id,$tag_name]:-N/A}"
+# Iterate over each resource ID
+for resource_id in "${(@k)resource_tags[@]}"; do
+    printf "%s\t%s\t" "$resource_id" "${resource_type_data[$resource_id]}"
+    
+    # Create an associative array from the tag string
+    declare -A tag_array
+    for tag in ${(s: :)resource_tags[$resource_id]}; do
+        tag_array[${tag%%:*}]=${tag#*:}
+    done
+
+    # Print tag values, or 'N/A' if not present
+    for tag_name in "${(@k)unique_tags[@]}"; do
+        tag_value="${tag_array[$tag_name]:-N/A}"
         printf "%s\t" "$tag_value"
     done
     echo ""
+    unset tag_array
 done
