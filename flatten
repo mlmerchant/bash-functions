@@ -1,15 +1,25 @@
 #!/bin/bash
-# flatten.sh - Flatten directory structure by renaming files with their relative path
+
+# flatten - Flatten directory structure by renaming files with their relative path
 
 if [[ "$PWD" == "/" ]]; then
     echo "ERROR: Running this script in root (/) is not allowed."
     exit 1
 fi
 
+# Rename and move non-empty files.
 find . -type f | while read -r file; do
     new_name="${file:2}"
     new_name="${new_name//\//⧸}"
     mv "$file" "$new_name"
+done
+
+# Preserve empty files by touching them.
+find . -type f -empty | while read -r empty_file; do
+    new_name="${empty_file:2}"
+    new_name="${new_name//\//⧸}"
+    mv "$empty_file" "$new_name"
+    touch "$new_name"
 done
 
 find . -type d -empty -delete
