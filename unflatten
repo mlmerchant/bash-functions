@@ -7,7 +7,12 @@ if [[ "$PWD" == "/" ]]; then
     exit 1
 fi
 
-find . -type f | while read -r file; do
+list_all_files() {
+    find . -type f
+    find . -type f -empty
+}
+
+ list_all_files | while read -r file; do
     new_path="${file//⧸/\/}"  # Replace ⧸ with /
     
     if [[ "$new_path" == "$file" ]]; then
