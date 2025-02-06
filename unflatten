@@ -21,8 +21,8 @@ list_all_files() {
     fi
 
     dir_name="$(dirname "$new_path")"
-    mkdir -p "$(dir_name | sed 's/\\//g')"
-    mv "$file" "$(new_path | sed 's/\\//g')"
+    mkdir -p "$($dir_name | sed 's/\\//g')"
+    mv "$file" "$($new_path | sed 's/\\//g')"
 done
 
 echo "Expansion complete!"
