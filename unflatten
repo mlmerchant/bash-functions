@@ -1,4 +1,6 @@
-# unflatten.sh - Restore directory structure from flattened filenames
+#!/bin/bash
+
+# unflatten - Restore directory structure from flattened filenames
 
 if [[ "$PWD" == "/" ]]; then
     echo "ERROR: Running this script in root (/) is not allowed."
@@ -14,8 +16,8 @@ find . -type f | while read -r file; do
     fi
 
     dir_name="$(dirname "$new_path")"
-    mkdir -p "$dir_name"
-    mv "$file" "$new_path"
+    mkdir -p "$(dir_name | sed 's/\\//g')"
+    mv "$file" "$(new_path | sed 's/\\//g')"
 done
 
 echo "Expansion complete!"
