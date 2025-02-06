@@ -16,8 +16,8 @@ find . -type f | while read -r file; do
     fi
 
     dir_name="$(dirname "$new_path")"
-    mkdir -p "$($dir_name | sed 's/\\//g')"
-    mv "$file" "$($new_path | sed 's/\\//g')"
+    mkdir -p "$(echo $dir_name | sed 's/\\//g')"
+    mv "$file" "$(echo $new_path | sed 's/\\//g')"
 done
 
 echo "Expansion complete!"
