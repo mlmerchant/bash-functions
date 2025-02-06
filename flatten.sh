@@ -1,0 +1,17 @@
+#!/bin/bash
+# flatten.sh - Flatten directory structure by renaming files with their relative path
+
+if [[ "$PWD" == "/" ]]; then
+    echo "ERROR: Running this script in root (/) is not allowed."
+    exit 1
+fi
+
+find . -type f | while read -r file; do
+    new_name="${file:2}"
+    new_name="${new_name//\//⧸}"
+    mv "$file" "$new_name"
+done
+
+find . -type d -empty -delete
+
+echo "Compression complete!"
