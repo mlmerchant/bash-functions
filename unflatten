@@ -1,23 +1,31 @@
 #!/bin/bash
 
-# unflatten - Restore directory structure from flattened filenames
+# Restore directory structure from hash mappings.
+
+set -e  # Exit on error
 
 if [[ "$PWD" == "/" ]]; then
     echo "ERROR: Running this script in root (/) is not allowed."
     exit 1
 fi
 
-find . -type f | while read -r file; do
-    new_path="${file//⧸/\/}"  # Replace ⧸ with /
-    
-    if [[ "$new_path" == "$file" ]]; then
-        # Skipping file (No ⧸ found)
-        continue
-    fi
+if [[ ! -f "flattened_file_directory.csv" ]]; then
+    echo "ERROR: Mapping file 'flattened_file_directory.csv' not found!"
+    exit 1
+fi
 
-    dir_name="$(dirname "$new_path")"
-    mkdir -p "$(echo $dir_name | sed 's/\\//g')"
-    mv "$file" "$(echo $new_path | sed 's/\\//g')"
+# Read the mapping file and restore files
+tail -n +2 flattened_file_directory.csv | while IFS=, read -r hash original_path; do
+    if [[ -f "$hash" ]]; then
+        # Ensure target directory exists
+        dir_name="$(dirname "$original_path")"
+        mkdir -p "$dir_name"
+        
+        # Move the file back to its original location
+        mv "$hash" "$original_path"
+    else
+        echo "WARNING: File missing for hash $hash ($original_path)"
+    fi
 done
 
-echo "Expansion complete!"
+echo "Restoration complete!"
