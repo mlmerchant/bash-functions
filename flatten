@@ -12,7 +12,7 @@ fi
 # Ensure the mapping file is clean
 echo "hash,original_path" > flattened_file_directory.csv
 
-find . -type f | while read -r file; do
+find ./*/ -type f | while read -r file; do
     # Remove leading ./ from the path
     relative_path="${file#./}"
     
