@@ -1,20 +1,32 @@
 #!/bin/bash
 
-# flatten - Flatten directory structure by renaming files with their relative path
+# Flatten directory structure using md5 hashes while maintaining a mapping file for restoration.
+
+set -e  # Exit on error
 
 if [[ "$PWD" == "/" ]]; then
     echo "ERROR: Running this script in root (/) is not allowed."
     exit 1
 fi
 
+# Ensure the mapping file is clean
+echo "hash,original_path" > flattened_file_directory.csv
+
 find . -type f | while read -r file; do
-    new_name="${file:2}"
-    new_name="${new_name//\//⧸}"
-    mv "$file" "$new_name"
+    # Remove leading ./ from the path
+    relative_path="${file#./}"
+    
+    # Generate MD5 hash of the file path
+    hash=$(echo -n "$relative_path" | md5sum | awk '{print $1}')
+    
+    # Move the file to the current directory with the hashed name
+    mv "$file" "$hash"
+    
+    # Store the mapping
+    echo "$hash,$relative_path" >> flattened_file_directory.csv
 done
 
-
+# Remove all directories (keeping all working-directory-level files intact)
 rm -rf ./*/
 
-
-echo "Compression complete!"
+echo "Flattening complete!"
